@@ -4,13 +4,30 @@ Competitors of IPIN are required to code an Android application designed for sma
 -computes the location of the target user during the measurement session
 -reports the estimated position twice per second to the measurement application (aka the StepLogger app).
 
-We provide 3 Android-based applications:
-- StepLogger
-- StepLogger in full-screen mode
-- StepLoggerClient
+We release 3 Android-based applications:
+- [StepLogger](https://github.com/wnlab-isti/steplogger)
+- [StepLogger in full-screen mode](https://github.com/wnlab-isti/steplogger_fullscreen)
+- [StepLoggerClient](https://github.com/wnlab-isti/steplogger_client)
 
-StepLogger provides two operations:
+StepLogger implements 2 operations:
+- a logging service designed to log the position computed by the applications of the competitors, and the timestamp when you press the buttons shown by the app
+- a GUI to perform the measurements. We provide 2 versions of the StepLogger:
+	- designed to run on foreground
+	- designed to run as overlay app
 
-a logging service designed to log the position computed by the applications of the competitors (Section 1) as well as the time you press the buttons shown by the app
-a GUI to perform the measurements. We provide two versions of the StepLogger app, v1 designed to run on foreground, v2 designed to run also as overlay app (see Section 2)
-StepLoggerClient provides one operation: a fake localization system generating fake positions and invoking the logging system of the StepLogger application
+StepLoggerClient implements 1 operation: a test localization system generating fake positions and invoking the logging system of the StepLogger application.
+
+## StepLogger Logging Interface
+
+StepLogger implements a simple service for the applications of the competitors. The service is implemented with the Java-method:
+
+	void logPosition(in long timestamp, in double x,in double y, in double z);
+
+which is implemented by the StepLogger. This method must be invoked through the [AIDL](https://developer.android.com/guide/components/aidl) interface. In particular, competitors are required add the StepLogger AIDL file to their Android project and invoke the `logPosition` method twice per second.
+
+Every time the competing app calls `logPosition`, the StepLogger app logs the following information:
+
+- Time stamp: time in milliseconds from the Unix epoch, as returned from the `currentTimeMillis()` method provided by the Java System class
+- Coordinates x, y, z : x and y are longitude and latitude, respectively, with WGS84 reference system, while z is the floor, that is an integer number, with a 0 indicating the ground floor.
+
+These information are stored in the file `positions.log`, as detailed below under “StepLogger Logging mechanism”.

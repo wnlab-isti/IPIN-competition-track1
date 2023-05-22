@@ -11,32 +11,32 @@ We release 3 Android-based applications:
 - [StepLogger in full-screen mode](https://github.com/wnlab-isti/steplogger_fullscreen/releases/tag/v1.0.0)
 - [StepLoggerClient](https://github.com/wnlab-isti/steplogger_client/releases/tag/v1.0.0)
 
-StepLogger implements 2 operations:
+`StepLogger` implements 2 operations:
 - a logging service designed to log the position computed by the applications of the competitors, and the timestamp when you press the buttons shown by the app
 - a GUI to perform the measurements. We provide 2 versions of the StepLogger:
-	- designed to run on foreground
-	- designed to run as overlay app
+	- [designed to run as overlay app](https://github.com/wnlab-isti/steplogger/)
+	- [designed to run on foreground](https://github.com/wnlab-isti/steplogger_fullscreen)
 
-StepLoggerClient implements 1 operation: a test localization system generating fake positions and invoking the logging system of the StepLogger application.
+`StepLoggerClient` implements only one operation: a test localization system generating fake positions and invoking the logging system of the `StepLogger` application.
 
-## StepLogger Logging Interface
+## The AIDL logging interface
 
-StepLogger implements a simple service for the applications of the competitors. The service is implemented with the Java-method:
+`StepLogger` implements a simple service for the applications of the competitors. The service is implemented with the Java-method:
 
 	void logPosition(in long timestamp, in double x,in double y, in double z);
 
-which is implemented by the StepLogger. This method must be invoked through the [AIDL](https://developer.android.com/guide/components/aidl) interface. In particular, competitors are required add the StepLogger AIDL file to their Android project and invoke the `logPosition` method twice per second.
+which is implemented by the `StepLogger`. This method must be invoked through the [AIDL](https://developer.android.com/guide/components/aidl) interface. In particular, competitors are required add the `StepLogger` AIDL file to their Android project and invoke the `logPosition` method **twice per second**.
 
-Every time the competing app calls `logPosition`, the StepLogger app logs the following information:
+Every time the competing app calls `logPosition`, StepLogger logs the following information:
 
-- Time stamp: time in milliseconds from the Unix epoch, as returned from the `currentTimeMillis()` method provided by the Java System class
-- Coordinates x, y, z : x and y are longitude and latitude, respectively, with WGS84 reference system, while z is the floor, that is an integer number, with a 0 indicating the ground floor.
+- Time stamp: time in milliseconds from the Unix epoch, as returned from the `currentTimeMillis()` method provided by the Java System class;
+- Coordinates `x, y, z` : `x` and `y` are longitude and latitude, respectively, with WGS84 reference system, while `z` is the floor, that is an integer number, with a 0 indicating the ground floor.
 
-These information are stored in the file `positions.log`, as detailed below under “StepLogger Logging mechanism”.
+These informations are stored in the file `positions.log`, as detailed below in Section: [StepLogger Logging mechanism](#steplogger-logging-mechanism) 
 
-### How to use the StepLogger AIDL interface
-- Download the StepLogger [AIDL file in the StepLogger project](https://github.com/wnlab-isti/steplogger/blob/main/app/src/main/aidl/it/cnr/isti/steplogger/IStepLoggerService.aidl)
-- The AIDL file must be placed on the aidl folder under your Android project
+### How to use the AIDL logging interface
+- Download the [AIDL file in the StepLogger project](https://github.com/wnlab-isti/steplogger/blob/main/app/src/main/aidl/it/cnr/isti/steplogger/IStepLoggerService.aidl)
+- The AIDL file must be placed on the `aidl` folder under your Android project
 
 ![Example of AIDL file](resources/images/AIDL.png)
 
@@ -44,8 +44,10 @@ These information are stored in the file `positions.log`, as detailed below unde
 - Invoke the `logPosition` method by following these steps:
 	- Create an Intent object
 	- Set the class name of the intent object with:
-	BOUNDSERVICE_PACKAGE = "it.cnr.isti.steplogger";
-	BOUNDSERVICE_CLASS = ".StepLoggerService";
+		
+			BOUNDSERVICE_PACKAGE = "it.cnr.isti.steplogger";
+			BOUNDSERVICE_CLASS = ".StepLoggerService";
+
 - Invoke the `bindService(…)` method provided by Android OS in order to bind to the service that matching with `BOUNDSERVICE_PACKAGE` and `BOUNDSERVICE_CLASS`
 
 
@@ -53,7 +55,7 @@ These information are stored in the file `positions.log`, as detailed below unde
 
 
 
-- Invoke the `stepLoggerCLient` app which intended to provide an example of how the competing application should interact with the StepLogger. `StepLoggerClient` shows a GUI with two buttons: `START LOGGING POSITION` and `STOP LOGGING POSITION`.
+- Invoke the `stepLoggerCLient` app which intended to provide an **example** of how the competing application should interact with the StepLogger. `StepLoggerClient` shows a GUI with two buttons: `START LOGGING POSITION` and `STOP LOGGING POSITION`.
 
 Note: Since `StepLoggerClient` invokes a method provided by the `StepLogger` app, you have to first start a new measurement session.
 
@@ -62,7 +64,7 @@ Note: Since `StepLoggerClient` invokes a method provided by the `StepLogger` app
 When you click on `START LOGGING POSITION`:
 - The `StepLoggerClientActivity` creates an intent object and it sends the intent to the `StepLoggerClientService`
 - The `StepLoggerClientService` manages the intent received with the following steps:
-- It creates an intent for invoking the logPosition service:
+- It creates an intent for invoking the `logPosition` service:
 	
 		if (intent != null) {
 			intentService.setClassName(BOUNDSERVICE_PACKAGE, BOUNDSERVICE_PACKAGE + BOUNDSERVICE_CLASS);
@@ -78,18 +80,19 @@ When you click on `START LOGGING POSITION`:
 
 ## StepLogger and StepLogger full screen
 
-StepLogger provides a GUI to be used by competitors to perform the measurement sessions. We release 2 versoions of StepLogger:
+`StepLogger` provides a GUI to be used by competitors to perform the measurement sessions. We release 2 versions of `StepLogger`:
 
 - `StepLogger`: designed to run with an overlay interface, in order to allow other apps to run on foreground. This version is usefull to those that require to have their app running on foreground.
 - `StepLogger full screen`: designed to run on foreground only. The app shows a full screen button with the name of the label as described below
 
 The actor will walk along a predefined path within the evaluation site and he/she clicks the button displayed by StepLogger when stepping over the markers placed on the floor. The button displayed on the screen shows the same label of the markers positioned on the floor, so that the actor can double-check when to press the button (press button X when you step over marker X). Every time the button is pressed, `StepLogger` logs the following information:
 
-- Time stamp: this time is gathered from the clock of the smartphone running StepLogger
+- Time stamp: this time is gathered from the clock of the smartphone running `StepLogger`
 - The label displayed when the button is pressed
 
-These information are stored in the file `buttonsPressed.log`, please refer to the “StepLogger Logging mechanism” section for information about the logs.
+These information are stored in the file `buttonsPressed.log`, please refer to the [StepLogger Logging mechanism](#steplogger-logging-mechanism) section for information about the logs.
 
+s
 ### How to start a new measurement session
 
 **FIRST**: copy the the [INI](resources/it.cnr.isti.steplogger.config.ini) file under the Download directory of your phone, ex. `/storage/emulated/0/Download/`
@@ -119,6 +122,8 @@ Some available options are available with the top-right menu:
 Concerning StepLogger `(overlay)`, all the previous steps are the same. The GUI is slightly different:
 
 ![StepLogger overlay](resources/images/stepLogger_over.png)
+
+
 
 ### StepLogger Logging mechanism
 `StepLogger` writes the logs generated during the measurement session to the `Download` directory of the devices running `StepLogger`. Inside the `Download` directory, `StepLogger` archives the log files in the folder named: `it.cnr.isti.steplogger`. For example the full path of the smartphone used for tests is:

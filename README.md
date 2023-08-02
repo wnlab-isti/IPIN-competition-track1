@@ -41,6 +41,12 @@ These informations are stored in the file `positions.log`, as detailed below in 
 ![Example of AIDL file](resources/images/AIDL.png)
 
 - Add the AIDL file under the Java package: `it.cnr.isti.steplogger`
+- If your application is built with API Level 30 and above, declare that you're using the StepLoggerService in your `AndroidManifest.xml`:
+		
+		<queries>
+  			<package android:name="it.cnr.isti.steplogger" />
+		</queries>
+
 - Invoke the `logPosition` method by following these steps:
 	- Create an Intent object
 	- Set the class name of the intent object with:

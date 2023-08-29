@@ -1,10 +1,12 @@
 # Onsite Tracks: Requirements for Competitors
 
 **Competitors of IPIN are required to code an Android application designed for smartphones** (no tablet are allowed) that:
+
 -computes the location of the target user during the measurement session
+
 -reports the estimated position twice per second to the measurement application (aka the StepLogger app).
 
-**Remember: Test your localization app + StepLogger with a path of 15 minutes so that to ensure the robustness of your localization app.**
+**Remember: Test your localization app + StepLogger with a testing path of 15+ minutes so that to ensure the robustness of your localization app.**
 
 We release 3 Android-based applications:
 - [StepLogger](https://github.com/wnlab-isti/steplogger/releases/tag/v1.0.0)
@@ -12,22 +14,26 @@ We release 3 Android-based applications:
 - [StepLoggerClient](https://github.com/wnlab-isti/steplogger_client/releases/tag/v1.0.0)
 
 `StepLogger` implements 2 operations:
-- a logging service designed to log the position computed by the applications of the competitors, and the timestamp when you press the buttons shown by the app
+- a logging service designed to log the position computed by applications of the competitors, and to log the timestamp when you press the buttons shown by the app
 - a GUI to perform the measurements. We provide 2 versions of the StepLogger:
 	- [designed to run as overlay app](https://github.com/wnlab-isti/steplogger/)
-	- [designed to run on foreground](https://github.com/wnlab-isti/steplogger_fullscreen)
+	- [designed to run on foreground and in fullscreen mode](https://github.com/wnlab-isti/steplogger_fullscreen)
 
-`StepLoggerClient` implements only one operation: a test localization system generating fake positions and invoking the logging system of the `StepLogger` application.
+`StepLoggerClient` implements only one operation: a testing localization system generating fake positions and invoking the logging system of the `StepLogger` application.
+
+Installing and testing `StepLoggerClient` + `steplogger` will allow you to reproduce the setup we will use during the IPIN competition.
 
 ## The AIDL logging interface
 
-`StepLogger` implements a simple service for the applications of the competitors. The service is implemented with the Java-method:
+We describe in this section the mechanism used to let `StepLogger` communicate with the applications of the competitors.
+
+`StepLogger` implements and exports a simple service, implementing the following Java-method:
 
 	void logPosition(in long timestamp, in double x,in double y, in double z);
 
-which is implemented by the `StepLogger`. This method must be invoked through the [AIDL](https://developer.android.com/guide/components/aidl) interface. In particular, competitors are required add the `StepLogger` AIDL file to their Android project and invoke the `logPosition` method **twice per second**.
+This method must be invoked through the [AIDL](https://developer.android.com/guide/components/aidl) interface. In particular, competitors are required to add the `StepLogger` AIDL file to their Android project and invoke the `logPosition` method **twice per second** so that to log the estimated position with a frequency of 2Hz.
 
-Every time the competing app calls `logPosition`, StepLogger logs the following information:
+Every time the `logPosition` method is invoked, StepLogger logs the following information:
 
 - Time stamp: time in milliseconds from the Unix epoch, as returned from the `currentTimeMillis()` method provided by the Java System class;
 - Coordinates `x, y, z` : `x` and `y` are longitude and latitude, respectively, with WGS84 reference system, while `z` is the floor, that is an integer number, with a 0 indicating the ground floor.
@@ -60,8 +66,9 @@ These informations are stored in the file `positions.log`, as detailed below in 
 		void bindService(in Intent intentService, in ServiceConnection mConnection, in int flags);
 
 
+Now you can test the interaction between `stepLoggerCLient` and `StepLogger` or your own application:
 
-- Invoke the `stepLoggerCLient` app which intended to provide an **example** of how the competing application should interact with the StepLogger. `StepLoggerClient` shows a GUI with two buttons: `START LOGGING POSITION` and `STOP LOGGING POSITION`.
+- Start the `stepLoggerCLient` app. This app is designed to provide an **example** of how the competing application should interact with the StepLogger. `StepLoggerClient` shows a GUI with two buttons: `START LOGGING POSITION` and `STOP LOGGING POSITION`.
 
 Note: Since `StepLoggerClient` invokes a method provided by the `StepLogger` app, you have to first start a new measurement session.
 
@@ -84,14 +91,14 @@ When you click on `START LOGGING POSITION`:
 
 ![Random positions](resources/images/code.png)
 
-## StepLogger and StepLogger full screen
+## StepLogger and StepLogger full screen mode
 
-`StepLogger` provides a GUI to be used by competitors to perform the measurement sessions. We release 2 versions of `StepLogger`:
+`StepLogger` implements a simople GUI designed to perform measurement sessions. We release 2 versions of `StepLogger`:
 
-- `StepLogger`: designed to run with an overlay interface, in order to allow other apps to run on foreground. This version is usefull to those that require to have their app running on foreground.
+- `StepLogger`: designed to run with an overlay interface, in order to allow other apps to run on foreground. This version is usefull to those competitors requiring to have their own app running on foreground.
 - `StepLogger full screen`: designed to run on foreground only. The app shows a full screen button with the name of the label as described below
 
-The actor will walk along a predefined path within the evaluation site and he/she clicks the button displayed by StepLogger when stepping over the markers placed on the floor. The button displayed on the screen shows the same label of the markers positioned on the floor, so that the actor can double-check when to press the button (press button X when you step over marker X). Every time the button is pressed, `StepLogger` logs the following information:
+The actor, namely the person in charge of using the application of the competitors, will walk along a predefined path within the evaluation site and he/she will click the button displayed by StepLogger when stepping over the markers placed on the floor. The button displayed on the screen reports the same label of markers on the floor, so that the actor can double-check when to press the button (press button X when you step over marker X). Every time the button is pressed, `StepLogger` logs the following information:
 
 - Time stamp: this time is gathered from the clock of the smartphone running `StepLogger`
 - The label displayed when the button is pressed
@@ -102,10 +109,20 @@ s
 ### How to start a new measurement session
 
 **FIRST**: copy the the [INI](resources/it.cnr.isti.steplogger.config.ini) file under the Download directory of your phone, ex. `/storage/emulated/0/Download/`
-- Install `StepLogger` and `StepLoggerClient` applications. Please remember to enable installation from unknown sources in you smartphones, otherwise you smartphone will prevent the installation of third-party applications.
-- Search for `StepLogger` and `StepLoggerClient` applications on your smartphone. Usually, after the installation of a new applications, you can find them by browsing the application menu.
+- Install `StepLogger` and `StepLoggerClient` applications. Note that: if you use the `.apk` files remember to enable installation from unknown sources in you smartphones, otherwise you smartphone will prevent the installation of third-party applications. Moreover, new versions of Android OS require to allow running applications in overlay mode as shown with the follwing screenshot (italian language). Click on `install anyway` button:
+
+![Authorize overlay mode](resources/images/overlay_auth.png)
+
+At this point, Android will show you a list of applicataions allowed to run in overlay mode, look for `stepLogger` and enable it, as well:
+
+![List overaly mode](resources/images/list_over.png)
+
+![Enable overaly mode](resources/images/enable_over.png)
+
+- Look for `StepLogger` and `StepLoggerClient` applications on your smartphone
 - Move `StepLogger` and `StepLoggerClient` on the Home page screen
-- Run `StepLoggerClient` and click on the button name `Start Logging Position`
+- Run `StepLoggerClient` and click on the button: `Start Logging Position`
+- Run `StepLogger` and start a new measurement session:
 
 ![Start measurement session](resources/images/app1.png)
 
@@ -116,10 +133,10 @@ s
 ![start logging](resources/images/app4.png)
 
 
-- `StepLogger` updates the logs as soon as you press the button. When you switch to another application and then reopen `StepLogger`, it resumes from the last button pressed.
+- `StepLogger` updates the logs as soon as you press the button with the label. When you switch to another application and then reopen `StepLogger`, it resumes from the last button pressed.
 - After stepping over all the markers, `StepLogger` finalizes the log files and shows a white screen
 
-Some available options are available with the top-right menu:
+Some options are available on the top-right menu:
 
 ![Options](resources/images/options.png)
 
